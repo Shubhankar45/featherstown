@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Aryan Dash",
+    "rating": 5,
+    "comment": "Very healthy birds and great guidance. Highly recommended!"
+  },
+  {
+    "id": 2,
+    "name": "Anee Patel",
+    "rating": 5,
+    "comment": "Got my first parrot from here. Amazing support and training tips!"
+  },
+  {
+    "id": 3,
+    "name": "Asmit Patel",
+    "rating": 4,
+    "comment": "Good experience. Bird was active and healthy."
+  }
+]
