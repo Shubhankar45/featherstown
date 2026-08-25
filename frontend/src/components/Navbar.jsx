@@ -474,6 +474,7 @@ export default function Navbar() {
   const [subLoading, setSubLoading] = useState(false);
   const [subDone, setSubDone]       = useState(false);
   const [subError, setSubError]     = useState("");
+  const [subAlready, setSubAlready] = useState(false);
 
   const openSubscribe = () => {
     close();
@@ -487,6 +488,7 @@ export default function Navbar() {
     setTimeout(() => {
       setSubEmail("");
       setSubDone(false);
+      setSubAlready(false);
       setSubError("");
       setSubLoading(false);
     }, 220);
@@ -508,6 +510,7 @@ export default function Navbar() {
       });
       const data = await res.json();
       if (res.ok) {
+        setSubAlready(/already/i.test(data.msg || ""));
         setSubDone(true);
         setSubEmail("");
       } else {
@@ -626,8 +629,8 @@ export default function Navbar() {
               <div className="ft-sub-success-icon">
                 <CheckIco size={24} />
               </div>
-              <h3 className="ft-sub-title" style={{ marginBottom: 8 }}>You're subscribed!</h3>
-              <p>Welcome to Feather Town 🌿 — we'll keep you posted on care tips and new arrivals.</p>
+              <h3 className="ft-sub-title" style={{ marginBottom: 8 }}>{subAlready ? "Already subscribed" : "You're subscribed!"}</h3>
+              <p>{subAlready ? "You're already on the list 🌿 — we'll keep sending care tips and new arrivals." : "Welcome to Feather Town 🌿 — we'll keep you posted on care tips and new arrivals."}</p>
             </div>
           ) : (
             <>

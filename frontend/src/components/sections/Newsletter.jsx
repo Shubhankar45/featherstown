@@ -8,6 +8,7 @@ import { toast } from "../ui/Toast";
 export default function Newsletter() {
   const [nlEmail, setNlEmail] = useState("");
   const [nlDone, setNlDone] = useState(false);
+  const [nlAlready, setNlAlready] = useState(false);
   const [nlLoading, setNlLoading] = useState(false);
 
   const handleSubscribe = useCallback(async () => {
@@ -16,7 +17,7 @@ export default function Newsletter() {
     try {
       const res = await fetch(`/api/subscribe`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: nlEmail }) });
       const data = await res.json();
-      if (res.ok) { setNlDone(true); setNlEmail(""); toast.success("You're subscribed! Welcome 🌿"); }
+      if (res.ok) { setNlAlready(/already/i.test(data.msg || "")); setNlDone(true); setNlEmail(""); toast.success(data.msg ?? "You're subscribed! Welcome 🌿"); }
       else toast.error(data.msg ?? "Something went wrong.");
     } catch {
       toast.error("Could not reach the server. Please try again.");
@@ -38,7 +39,7 @@ export default function Newsletter() {
         </p>
         {nlDone ? (
           <div style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.28)", borderRadius: "var(--r)", padding: "13px 22px", color: "var(--leaf)" }}>
-            <CheckIco size={17} /><span style={{ fontWeight: 700 }}>You're subscribed! Welcome 🎉</span>
+            <CheckIco size={17} /><span style={{ fontWeight: 700 }}>{nlAlready ? "You're already subscribed 🌿" : "You're subscribed! Welcome 🎉"}</span>
           </div>
         ) : (
           <div className="nl-row">

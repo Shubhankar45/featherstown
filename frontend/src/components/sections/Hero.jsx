@@ -86,12 +86,14 @@ export default function Hero() {
   const [subLoading, setSubLoading] = useState(false);
   const [subDone, setSubDone]       = useState(false);
   const [subError, setSubError]     = useState("");
+  const [subAlready, setSubAlready] = useState(false);
 
   const closeSubscribe = () => {
     setSubOpen(false);
     setTimeout(() => {
       setSubEmail("");
       setSubDone(false);
+      setSubAlready(false);
       setSubError("");
       setSubLoading(false);
     }, 220);
@@ -113,6 +115,7 @@ export default function Hero() {
       });
       const data = await res.json();
       if (res.ok) {
+        setSubAlready(/already/i.test(data.msg || ""));
         setSubDone(true);
         setSubEmail("");
       } else {
@@ -1059,8 +1062,8 @@ export default function Hero() {
               <div className="hsub-success-icon">
                 <CheckIco size={24} />
               </div>
-              <h3 className="hsub-title" style={{ marginBottom: 8 }}>You're subscribed!</h3>
-              <p>Welcome to Feather Town 🌿 — we'll keep you posted on care tips and new arrivals.</p>
+              <h3 className="hsub-title" style={{ marginBottom: 8 }}>{subAlready ? "Already subscribed" : "You're subscribed!"}</h3>
+              <p>{subAlready ? "You're already on the list 🌿 — we'll keep sending care tips and new arrivals." : "Welcome to Feather Town 🌿 — we'll keep you posted on care tips and new arrivals."}</p>
             </div>
           ) : (
             <>
