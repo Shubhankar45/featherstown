@@ -9,11 +9,21 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import compression from "compression";
 import morgan from "morgan";
+import dns from "dns";
 
 import connectDB from "./config/db.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import Review from "./models/Review.js";
 import Subscriber from "./models/Subscriber.js";
+
+/* ───────── FORCE IPv4 DNS RESOLUTION ─────────
+   Render (and several other cloud hosts) cannot route outbound IPv6.
+   smtp.hostinger.com resolves to an IPv6 address first, so Nodemailer
+   tries to connect over IPv6 and fails with:
+     "connect ENETUNREACH <ipv6-address>:465"
+   Preferring IPv4 makes outbound SMTP (and all other) connections work.
+   Must run before any network call (DB connect, mail verify, sendMail). */
+dns.setDefaultResultOrder("ipv4first");
 
 /* ───────── PATHS (fixed Windows-safe resolution) ───────── */
 const __filename = fileURLToPath(import.meta.url);
@@ -152,6 +162,7 @@ if (process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASS) {
     host: process.env.MAIL_HOST,
     port: mailPort,
     secure: mailSecure,
+    family: 4, // force IPv4 — Render can't route outbound IPv6 (ENETUNREACH)
     auth: {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS,
