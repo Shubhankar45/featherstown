@@ -158,16 +158,32 @@ if (process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASS) {
       ? process.env.MAIL_SECURE === "true"
       : mailPort === 465;
 
+  /* Render cannot route outbound IPv6, and smtp.hostinger.com resolves to
+     an IPv6 address first (it sits behind Cloudflare) — causing
+     "connect ENETUNREACH <ipv6>:465". Pre-resolve the host to an IPv4
+     address and connect to that IP directly. This GUARANTEES IPv4
+     regardless of Node/Nodemailer DNS defaults. TLS still validates against
+     the real hostname via `servername` (SNI), so the cert + Cloudflare
+     routing keep working. */
+  let mailHost = process.env.MAIL_HOST;
+  try {
+    const { address } = await dns.promises.lookup(process.env.MAIL_HOST, { family: 4 });
+    mailHost = address;
+    console.log(`📧 Resolved ${process.env.MAIL_HOST} → IPv4 ${address}`);
+  } catch (e) {
+    console.warn(`⚠️ IPv4 resolve failed for ${process.env.MAIL_HOST}; using hostname. ${e.message}`);
+  }
+
   transporter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST,
+    host: mailHost, // literal IPv4 (falls back to hostname if resolve failed)
     port: mailPort,
     secure: mailSecure,
-    family: 4, // force IPv4 — Render can't route outbound IPv6 (ENETUNREACH)
     auth: {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS,
     },
     tls: {
+      servername: process.env.MAIL_HOST, // SNI + cert match when connecting by IP
       rejectUnauthorized: false,
     },
     connectionTimeout: 10000,
@@ -179,7 +195,7 @@ if (process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASS) {
     if (err) {
       console.error("❌ Mail Error:", err.message);
     } else {
-      console.log(`✅ Mail Ready (host: ${process.env.MAIL_HOST}, port: ${mailPort}, secure: ${mailSecure})`);
+      console.log(`✅ Mail Ready (host: ${process.env.MAIL_HOST} @ ${mailHost}, port: ${mailPort}, secure: ${mailSecure})`);
     }
   });
 } else {
